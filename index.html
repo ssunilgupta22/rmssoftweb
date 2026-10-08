@@ -156,7 +156,7 @@
         <div class="button-container">
                 <!-- JavaScript handles the click event on this button -->
                 <button id="download-btn" class="btn-download" onclick="generateZipDownload()">
-                    Download RMSsoft Installer (ZIP)
+                    Download RMSsoft_installer (ZIP)
                 </button>
                 <div id="status-message"></div>
                 <span class="version-tag">Version 3.1.0 • Compressed ZIP Format • Windows 10/11 Compatible</span>
@@ -187,37 +187,70 @@
         <p>&copy; 2026 RMSSOFT. All rights reserved.</p>
     </footer>
  <script>
+        // Helper function to format bytes cleanly into KB or MB
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + " Bytes";
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+            else return (bytes / 1048576).toFixed(1) + " MB";
+        }
         async function generateZipDownload() {
             const button = document.getElementById('download-btn');
             const status = document.getElementById('status-message');
             
-            // Your raw executable URL
-            const exeUrl = "https://media.githubusercontent.com/media/ssunilgupta22/rms_installer/refs/heads/main/rms_installer.exe";
+            const exeUrl = "https://githubusercontent.com";
             
-            // Disable button during processing to prevent double clicks
             button.disabled = true;
-            status.textContent = "Downloading installer components...";
+            status.textContent = "Connecting to server...";
             status.style.color = "#2563eb";
 
             try {
-                // 1. Fetch the remote .exe file as binary data (Blob)
+                // 1. Fetch the remote .exe file
                 const response = await fetch(exeUrl);
                 if (!response.ok) throw new Error("Network response was not ok");
-                const blob = await response.blob();
+
+                // Get the total size of the file from headers
+                const contentLength = response.headers.get('content-length');
+                const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+
+                // 2. Read data as a stream to track progress
+                const reader = response.body.getReader();
+                let receivedBytes = 0;
+                let chunks = []; // Store the data fragments
+
+                while(true) {
+                    const {done, value} = await reader.read();
+                    
+                    if (done) {
+                        break;
+                    }
+
+                    chunks.push(value);
+                    receivedBytes += value.length;
+
+                    // Display download progress dynamically
+                    if (totalBytes > 0) {
+                        status.textContent = `Downloading: ${formatBytes(receivedBytes)} / ${formatBytes(totalBytes)}`;
+                    } else {
+                        // Fallback if the server doesn't provide a total file size
+                        status.textContent = `Downloading: ${formatBytes(receivedBytes)}`;
+                    }
+                }
 
                 status.textContent = "Compressing into ZIP archive...";
 
-                // 2. Initialize JSZip and add the executable file inside it
+                // 3. Combine chunks into a single Blob object
+                const blob = new Blob(chunks);
+
+                // 4. Initialize JSZip and compress the file
                 const zip = new JSZip();
                 zip.file("rms_installer.exe", blob);
 
-                // 3. Generate the compressed zip file asynchronously
                 const content = await zip.generateAsync({ type: "blob" });
 
                 status.textContent = "Download starting!";
                 status.style.color = "#16a34a"; // Green for success
 
-                // 4. Create a temporary download link and trigger it automatically
+                // 5. Trigger download
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(content);
                 link.download = "rms_installer.zip";
@@ -225,7 +258,6 @@
                 link.click();
                 document.body.removeChild(link);
 
-                // Clear status after a delay
                 setTimeout(() => {
                     status.textContent = "";
                     button.disabled = false;
