@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Download RMSSOFT310</title>
+    <script src="https://cloudflare.com"></script>
     <style>
         /* Modern Reset and Fonts */
         * {
@@ -146,11 +147,21 @@
             <!-- Replace "#" with your actual installer file link -->
             <a href="https://media.githubusercontent.com/media/ssunilgupta22/rms_installer/refs/heads/main/rms_installer.exe"
               class="btn-download" download>
-                Download RMSsoft Installer 
+                Download RMSsoft Installer exe
             </a>
             <span class="version-tag">Version 3.1.0 • Windows 10/11 Compatible</span>
         </section>
 
+      <section class="hero">
+        <div class="button-container">
+                <!-- JavaScript handles the click event on this button -->
+                <button id="download-btn" class="btn-download" onclick="generateZipDownload()">
+                    Download RMSsoft Installer (ZIP)
+                </button>
+                <div id="status-message"></div>
+                <span class="version-tag">Version 3.1.0 • Compressed ZIP Format • Windows 10/11 Compatible</span>
+            </div>
+      </section>
         <!-- Product Features Grid -->
         <section class="features">
             <div class="feature-card">
@@ -175,6 +186,58 @@
     <footer>
         <p>&copy; 2026 RMSSOFT. All rights reserved.</p>
     </footer>
+ <script>
+        async function generateZipDownload() {
+            const button = document.getElementById('download-btn');
+            const status = document.getElementById('status-message');
+            
+            // Your raw executable URL
+            const exeUrl = "https://media.githubusercontent.com/media/ssunilgupta22/rms_installer/refs/heads/main/rms_installer.exe";
+            
+            // Disable button during processing to prevent double clicks
+            button.disabled = true;
+            status.textContent = "Downloading installer components...";
+            status.style.color = "#2563eb";
 
+            try {
+                // 1. Fetch the remote .exe file as binary data (Blob)
+                const response = await fetch(exeUrl);
+                if (!response.ok) throw new Error("Network response was not ok");
+                const blob = await response.blob();
+
+                status.textContent = "Compressing into ZIP archive...";
+
+                // 2. Initialize JSZip and add the executable file inside it
+                const zip = new JSZip();
+                zip.file("rms_installer.exe", blob);
+
+                // 3. Generate the compressed zip file asynchronously
+                const content = await zip.generateAsync({ type: "blob" });
+
+                status.textContent = "Download starting!";
+                status.style.color = "#16a34a"; // Green for success
+
+                // 4. Create a temporary download link and trigger it automatically
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = "rms_installer.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clear status after a delay
+                setTimeout(() => {
+                    status.textContent = "";
+                    button.disabled = false;
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error creating ZIP file:", error);
+                status.textContent = "Download failed. Please try again.";
+                status.style.color = "#dc2626"; // Red for failure
+                button.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>
