@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMSSOFT310 Installer Download - Official RMSSOFT Webpage</title>
+    <meta name="description" 
+        content="Download the official RMSSOFT310 installer zip file. Fast, lightweight setup guide and direct download link for RMSSOFT.">
     <title>Download RMSSOFT310</title>
     <script src="https://cloudflare.com"></script>
     <style>
@@ -196,83 +199,6 @@
             if (bytes < 1024) return bytes + " Bytes";
             else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
             else return (bytes / 1048576).toFixed(1) + " MB";
-        }
-        async function generateZipDownload() {
-            const button = document.getElementById('download-btn');
-            const status = document.getElementById('status-message');
-            
-            const exeUrl = "https://githubusercontent.com";
-            
-            button.disabled = true;
-            status.textContent = "Connecting to server...";
-            status.style.color = "#2563eb";
-
-            try {
-                // 1. Fetch the remote .exe file
-                const response = await fetch(exeUrl);
-                if (!response.ok) throw new Error("Network response was not ok");
-
-                // Get the total size of the file from headers
-                const contentLength = response.headers.get('content-length');
-                const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
-
-                // 2. Read data as a stream to track progress
-                const reader = response.body.getReader();
-                let receivedBytes = 0;
-                let chunks = []; // Store the data fragments
-
-                while(true) {
-                    const {done, value} = await reader.read();
-                    
-                    if (done) {
-                        break;
-                    }
-
-                    chunks.push(value);
-                    receivedBytes += value.length;
-
-                    // Display download progress dynamically
-                    if (totalBytes > 0) {
-                        status.textContent = `Downloading: ${formatBytes(receivedBytes)} / ${formatBytes(totalBytes)}`;
-                    } else {
-                        // Fallback if the server doesn't provide a total file size
-                        status.textContent = `Downloading: ${formatBytes(receivedBytes)}`;
-                    }
-                }
-
-                status.textContent = "Compressing into ZIP archive...";
-
-                // 3. Combine chunks into a single Blob object
-                const blob = new Blob(chunks);
-
-                // 4. Initialize JSZip and compress the file
-                const zip = new JSZip();
-                zip.file("rms_installer.exe", blob);
-
-                const content = await zip.generateAsync({ type: "blob" });
-
-                status.textContent = "Download starting!";
-                status.style.color = "#16a34a"; // Green for success
-
-                // 5. Trigger download
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = "rms_installer.zip";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                setTimeout(() => {
-                    status.textContent = "";
-                    button.disabled = false;
-                }, 3000);
-
-            } catch (error) {
-                console.error("Error creating ZIP file:", error);
-                status.textContent = "Download failed. Please try again.";
-                status.style.color = "#dc2626"; // Red for failure
-                button.disabled = false;
-            }
         }
     </script>
 </body>
