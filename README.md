@@ -7,7 +7,7 @@ Fill Asked Details, Installation may take few minutes.
 * Required
 - Internet Connection
 
-* [Live Website](https://ssunilgupta22.github.io/rmssoftweb/)
+* [Click Here To RMSSOFT WebPage](https://ssunilgupta22.github.io/rmssoftweb/)
 
 
 ## Features
